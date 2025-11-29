@@ -1,0 +1,286 @@
+{
+    "7486971490": {
+        "isim": "kaan",
+        "il": "İstanbul",
+        "ilce": "Büyükçekmece",
+        "referer": "1120730573",
+        "invites": 0,
+        "namaz_today": [
+            "sabah",
+            "ogle",
+            "i̇kindi",
+            "akşam",
+            "yatsi"
+        ],
+        "namaz_counter": 2,
+        "notified_prayers": [
+            "aksam"
+        ],
+        "civciv_list": [
+            {
+                "color": "Mavi Civciv 💧",
+                "status": "civciv",
+                "yem": 7,
+                "next_egg_time": null
+            }
+        ],
+        "tavuk_list": [],
+        "yumurta": 0,
+        "yem": 0,
+        "tasks_done": [
+            "zikir_la_ilahe_illallah",
+            "zikir_salavat",
+            "zikir_estagfirullah",
+            "nafile_namazi",
+            "kaza_namazi"
+        ],
+        "tasks_done_date": "2025-11-29",
+        "notified_prayers_date": "2025-11-29",
+        "prayer_times_cache": {
+            "date": "2025-11-29",
+            "times": {
+                "sabah": "06:30",
+                "ogle": "12:52",
+                "ikindi": "15:19",
+                "aksam": "17:37",
+                "yatsi": "19:12"
+            }
+        },
+        "last_daily_reset": "2025-11-29",
+        "altin": 0,
+        "tavuk_count": 0,
+        "last_weekly_reset": "2025-11-29 16:01:47",
+        "total_lifetime_yumurta": 0
+    },
+    "1120730573": {
+        "isim": "mehmet",
+        "il": "İstanbul",
+        "ilce": "Büyükçekmece",
+        "referer": null,
+        "invites": 2,
+        "namaz_today": [
+            "sabah",
+            "ogle",
+            "i̇kindi",
+            "akşam",
+            "yatsi"
+        ],
+        "namaz_counter": 0,
+        "notified_prayers": [
+            "aksam"
+        ],
+        "civciv_list": [
+            {
+                "color": "Mavi Civciv 💧",
+                "status": "tavuk",
+                "yem": 10,
+                "next_egg_time": "2025-11-30 02:41:30"
+            },
+            {
+                "color": "Sarı Civciv 🐥",
+                "status": "tavuk",
+                "yem": 10,
+                "next_egg_time": "2025-11-30 02:42:54"
+            },
+            {
+                "color": "Kırmızı Civciv 🍎",
+                "status": "civciv",
+                "yem": 0,
+                "next_egg_time": null
+            },
+            {
+                "color": "Pembe Civciv 🌸",
+                "status": "civciv",
+                "yem": 0,
+                "next_egg_time": null
+            },
+            {
+                "color": "Siyah Civciv ⚫",
+                "status": "civciv",
+                "yem": 0,
+                "next_egg_time": null
+            },
+            {
+                "color": "Mor Civciv 🍇",
+                "status": "civciv",
+                "yem": 0,
+                "next_egg_time": null
+            },
+            {
+                "color": "Turuncu Civciv 🍊",
+                "status": "civciv",
+                "yem": 0,
+                "next_egg_time": null
+            },
+            {
+                "color": "Yeşil Civciv 🌳",
+                "status": "civciv",
+                "yem": 0,
+                "next_egg_time": null
+            }
+        ],
+        "tavuk_list": [],
+        "yumurta": 4,
+        "yem": 35,
+        "tasks_done": [
+            "zikir_la_ilahe_illallah",
+            "zikir_salavat",
+            "zikir_estagfirullah",
+            "nafile_namazi",
+            "kaza_namazi"
+        ],
+        "tasks_done_date": "2025-11-29",
+        "notified_prayers_date": "2025-11-29",
+        "last_daily_reset": "2025-11-29",
+        "prayer_times_cache": {
+            "date": "2025-11-29",
+            "times": {
+                "sabah": "06:30",
+                "ogle": "12:52",
+                "ikindi": "15:19",
+                "aksam": "17:37",
+                "yatsi": "19:12"
+            }
+        },
+        "altin": 650,
+        "tavuk_count": 2,
+        "last_weekly_reset": "2025-11-29 16:18:09",
+        "total_lifetime_yumurta": 0
+    },
+    "1328311083": {
+        "isim": "Ayşegül",
+        "il": "İstanbul",
+        "ilce": "Bakırköy",
+        "referer": null,
+        "invites": 0,
+        "namaz_today": [
+            "sabah",
+            "ogle",
+            "i̇kindi",
+            "akşam",
+            "yatsi"
+        ],
+        "namaz_counter": 0,
+        "notified_prayers": [
+            "aksam"
+        ],
+        "civciv_list": [
+            {
+                "color": "Sarı Civciv 🐥",
+                "status": "civciv",
+                "yem": 5,
+                "next_egg_time": null
+            }
+        ],
+        "tavuk_list": [],
+        "yumurta": 0,
+        "yem": 0,
+        "tasks_done": [
+            "zikir_la_ilahe_illallah",
+            "zikir_salavat",
+            "zikir_estagfirullah",
+            "nafile_namazi",
+            "kaza_namazi"
+        ],
+        "tasks_done_date": "2025-11-29",
+        "notified_prayers_date": "2025-11-29",
+        "last_daily_reset": "2025-11-29",
+        "prayer_times_cache": {
+            "date": "2025-11-29",
+            "times": {
+                "sabah": "06:30",
+                "ogle": "12:52",
+                "ikindi": "15:19",
+                "aksam": "17:37",
+                "yatsi": "19:12"
+            }
+        },
+        "altin": 0,
+        "tavuk_count": 0,
+        "last_weekly_reset": "2025-11-29 16:14:29",
+        "total_lifetime_yumurta": 0
+    },
+    "6021383119": {
+        "isim": "kaan",
+        "il": "Istanbul",
+        "ilce": "Beylikdüzğ",
+        "referer": null,
+        "invites": 0,
+        "altin": 0,
+        "yem": 0,
+        "yumurta": 0,
+        "total_lifetime_yumurta": 0,
+        "last_weekly_reset": "2025-11-29 17:37:44",
+        "namaz_today": [],
+        "prayer_times_cache": {
+            "date": "2025-11-29",
+            "times": {
+                "sabah": "06:30",
+                "ogle": "12:52",
+                "ikindi": "15:19",
+                "aksam": "17:37",
+                "yatsi": "19:12"
+            }
+        },
+        "notified_prayers": [
+            "yatsi"
+        ],
+        "civciv_list": [],
+        "tavuk_count": 0,
+        "tasks_done": [],
+        "last_daily_reset": "2025-11-29"
+    },
+    "6812568900": {
+        "isim": "Alperen",
+        "il": "İstanbul",
+        "ilce": "Büyükçekmece",
+        "referer": "1120730573",
+        "invites": 0,
+        "altin": 0,
+        "yem": 0,
+        "yumurta": 9,
+        "total_lifetime_yumurta": 0,
+        "last_weekly_reset": "2025-11-29 19:39:42",
+        "namaz_today": [
+            "sabah",
+            "ogle",
+            "i̇kindi",
+            "akşam",
+            "yatsi"
+        ],
+        "prayer_times_cache": {
+            "date": "2025-11-29",
+            "times": {
+                "sabah": "06:30",
+                "ogle": "12:52",
+                "ikindi": "15:19",
+                "aksam": "17:37",
+                "yatsi": "19:12"
+            }
+        },
+        "notified_prayers": [],
+        "civciv_list": [
+            {
+                "color": "Yeşil Civciv 🌳",
+                "status": "tavuk",
+                "yem": 10,
+                "next_egg_time": "2025-11-30 00:06:27"
+            },
+            {
+                "color": "Sarı Civciv 🐥",
+                "status": "civciv",
+                "yem": 2,
+                "next_egg_time": null
+            }
+        ],
+        "tavuk_count": 1,
+        "tasks_done": [
+            "zikir_la_ilahe_illallah",
+            "zikir_salavat",
+            "zikir_estagfirullah",
+            "nafile_namazi",
+            "kaza_namazi"
+        ],
+        "last_daily_reset": "2025-11-29"
+    }
+}
