@@ -463,17 +463,20 @@ def handle_civciv_pazari_menu(message):
     user_id = message.from_user.id
     data, user_id_str = get_user_data(user_id)
     
-    animal_count = len(data[user_id_str]['civciv_list'])
+    # YENİ SAYIM MANTIĞI: Sadece 'civciv' durumunda olanları sayar.
+    current_civciv_count = len([c for c in data[user_id_str]['civciv_list'] if c['status'] == 'civciv'])
     
+    # Bilgilendirme metninde de yeni sayımı gösteriyoruz.
     info_text = (
         "🛒 **Civciv Pazarı** menüsündesin. Civcivlerini buradan alabilirsin.\n\n"
         f"💵 Fiyat: **{CIVCIV_COST_ALTIN} Altın 💰**\n"
         f"💳 Güncel Altın Bakiyen: **{data[user_id_str]['altin']} 💰**\n"
-        f"🐣 Mevcut Slot: **{animal_count}/{MAX_CIVCIV_OR_TAVUK}**\n\n"
+        f"🐣 Mevcut Slot: **{current_civciv_count}/{MAX_CIVCIV_OR_TAVUK}**\n\n"
         "**Unutma:** Toplam 8 hayvandan sonra satın alım kilitlenir."
     )
     
-    if animal_count >= MAX_CIVCIV_OR_TAVUK:
+    # YENİ KONTROL: Sadece civciv sayısına bakar. Tavuklar sayılmaz.
+    if current_civciv_count >= MAX_CIVCIV_OR_TAVUK: 
         info_text += "\n❌ **Maksimum hayvan sınırına ulaştınız!**"
         bot.send_message(user_id, info_text, parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
     else:
@@ -918,6 +921,7 @@ if __name__ == '__main__':
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
 
         time.sleep(5)
+
 
 
 
