@@ -1,10 +1,9 @@
 from flask import Flask
-from threading import Thread # Botu arka planda çalıştırmak için
+from threading import Thread
 import telebot
 from telebot import types
 import json
 import time
-from threading import Thread
 from datetime import datetime, timedelta, timezone
 import requests 
 import random
@@ -16,8 +15,8 @@ TURKEY_TIMEZONE = timezone(timedelta(hours=3))
 
 # --- Sabitler ve Ayarlar ---
 
-# ⚠️ BURAYI KENDİ BOT TOKEN'INIZLA DEĞİŞTİRİN
-TOKEN = '8329709843:AAGciMv8i8HFt784vxD-HWmzAlR9lDzFYDU'
+# ⚠️ ÖNEMLİ: TOKEN'I ARTIK KODDAN OKUMUYORUZ! Render'daki Secrets/Environment Variables'dan okunacak.
+TOKEN = os.getenv("BOT_TOKEN") 
 DATA_FILE = 'user_data.json'
 BOT_USERNAME = 'ibadetciftligi_bot' # Referans linkleri için
 PRAYER_API_URL = "http://api.aladhan.com/v1/timingsByCity"
@@ -29,7 +28,7 @@ YEM_PER_GOREV = 1            # Günlük görev başına verilen yem
 REF_YEM = 2                  # Davet başına verilen yem
 YEM_FOR_TAVUK = 10           # Civcivin tavuk olması için gereken yem
 EGG_INTERVAL_HOURS = 4       # Tavukların yumurta üretim aralığı (saat)
-MAX_CIVCIV_OR_TAVUK = 8      # Maksimum toplam hayvan sayısı (Civciv + Tavuk)
+MAX_CIVCIV_OR_TAVUK = 8      # Maksimum civciv slotu (Tavuklar sayılmaz)
 
 # Civciv Renkleri (Satın alma için kullanılacak 8 renk)
 CIVCIV_RENKLERI = [
@@ -175,7 +174,7 @@ def save_counter_state(data):
         json.dump(serializable_data, f, indent=4, ensure_ascii=False)
 
 
-# --- KLAVYE FONKSİYONLARI (NameError'ı çözen kısım) ---
+# --- KLAVYE FONKSİYONLARI ---
 
 def generate_sub_menu(buttons, row_width=2):
     """Alt menüler için genel klavye oluşturucu."""
@@ -240,13 +239,10 @@ def generate_market_menu_buttons(user_id):
     
     buttons = []
     
-    is_slot_full = len(data[user_id_str]['civciv_list']) >= MAX_CIVCIV_OR_TAVUK
-    
-    if is_slot_full:
-        return generate_sub_menu([], row_width=1) # Hiç buton gösterme
+    # Bu kontrolü yapmıyoruz, çünkü limit kontrolünü Civciv Pazar menüsünün kendisinde yapıyoruz.
     
     for civciv in CIVCIV_RENKLERI:
-        # Sadece sahibi olmadığı ve slotların dolu olmadığı renkleri göster
+        # Sadece sahibi olmadığı renkleri göster
         if civciv['color'] not in sahip_olunan_renkler:
              buttons.append(f"💰 Satın Al: {civciv['color']}")
              
@@ -293,7 +289,8 @@ def handle_start(message):
                 print(f"DEBUG: ÖDÜL VERİLİYOR! Davet eden ({referer_id_str}) +{REF_YEM} Yem kazanıyor.")
                 
                 user_data[user_id_str]['referer'] = referer_id_str
-                user_data[referer_id_str]['yem'] += REF_YEM
+                # user_data[user_id_str]['yem'] += REF_YEM  <-- YENİ KULLANICIYA YEM VEREN HESAP SİLİNDİ!
+                user_data[referer_id_str]['yem'] += REF_YEM # <<< SADECE REFERANS SAHİBİ KAZANIYOR
                 user_data[referer_id_str]['invites'] += 1
                 save_user_data(user_data)
                 
@@ -332,10 +329,10 @@ def process_location_step(message):
         prayer_times = fetch_prayer_times(il, ilce)
         
         if not prayer_times:
-             msg = bot.send_message(user_id, "Üzgünüm, girdiğiniz konum için namaz vakitlerini API'den çekemedim. Lütfen geçerli bir **İl/İlçe** girin.")
-             bot.register_next_step_handler(msg, process_location_step)
-             return
-             
+              msg = bot.send_message(user_id, "Üzgünüm, girdiğiniz konum için namaz vakitlerini API'den çekemedim. Lütfen geçerli bir **İl/İlçe** girin.")
+              bot.register_next_step_handler(msg, process_location_step)
+              return
+              
         data[user_id_str]['il'] = il
         data[user_id_str]['ilce'] = ilce
         data[user_id_str]['prayer_times_cache'] = {'date': datetime.now(TURKEY_TIMEZONE).strftime('%Y-%m-%d'), 'times': prayer_times}
@@ -403,11 +400,11 @@ def handle_prayer_done(message):
     save_user_data(data)
 
     bot.send_message(user_id, 
-                     f"🎉 **{prayer_name_tr} Namazı** işaretlendi. Allah kabul etsin!\n"
-                     f"**+{NAMAZ_ALTIN_KAZANCI} Altın 💰** kazandınız.\n"
-                     f"Güncel Altın Bakiyeniz: **{data[user_id_str]['altin']} 💰**", 
-                     parse_mode='Markdown', 
-                     reply_markup=generate_prayer_menu(user_id))
+                      f"🎉 **{prayer_name_tr} Namazı** işaretlendi. Allah kabul etsin!\n"
+                      f"**+{NAMAZ_ALTIN_KAZANCI} Altın 💰** kazandınız.\n"
+                      f"Güncel Altın Bakiyeniz: **{data[user_id_str]['altin']} 💰**", 
+                      parse_mode='Markdown', 
+                      reply_markup=generate_prayer_menu(user_id))
 
 # --- Görevler ve Yem Kazanımı ---
 
@@ -451,10 +448,10 @@ def handle_task_completion(message):
             save_user_data(data)
             
             bot.send_message(user_id, 
-                             f"✅ Görev tamamlandı: **{task_tr}**!\n"
-                             f"Ödül olarak **+{YEM_PER_GOREV} yem 🌾** kazandınız. Toplam yeminiz: **{data[user_id_str]['yem']}**", 
-                             reply_markup=generate_task_menu_buttons(user_id), 
-                             parse_mode='Markdown')
+                              f"✅ Görev tamamlandı: **{task_tr}**!\n"
+                              f"Ödül olarak **+{YEM_PER_GOREV} yem 🌾** kazandınız. Toplam yeminiz: **{data[user_id_str]['yem']}**", 
+                              reply_markup=generate_task_menu_buttons(user_id), 
+                              parse_mode='Markdown')
 
 # --- Civciv Pazarı ---
 
@@ -482,22 +479,27 @@ def handle_civciv_pazari_menu(message):
     else:
         bot.send_message(user_id, info_text, parse_mode='Markdown', reply_markup=generate_market_menu_buttons(user_id))
 
+
 @bot.message_handler(func=lambda message: message.text.startswith("💰 Satın Al:"))
 def handle_civciv_satin_alma(message):
     """Civciv satın alma işlemini yapar."""
     user_id = message.from_user.id
     text = message.text
+    
     data, user_id_str = get_user_data(user_id)
-    civciv_color = text.replace('💰 Satın Al: ', '')
+    current_civciv_count = len([c for c in data[user_id_str]['civciv_list'] if c['status'] == 'civciv']) # Civciv sayısını hesaplar
+    
+    civciv_color = text.replace('💰 Satın Al: ', '').strip()
     
     # Kontroller
     if data[user_id_str]['altin'] < CIVCIV_COST_ALTIN:
-         bot.send_message(user_id, f"❌ Yetersiz Altın! **{CIVCIV_COST_ALTIN - data[user_id_str]['altin']} Altın 💰** daha kazanmalısın.", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
+        bot.send_message(user_id, f"❌ Yetersiz Altın! **{CIVCIV_COST_ALTIN - data[user_id_str]['altin']} Altın 💰** daha kazanmalısın.", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
         return
+        
     if current_civciv_count >= MAX_CIVCIV_OR_TAVUK:
-         bot.send_message(user_id, f"❌ Maksimum hayvan sınırına ulaştın.", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
+         bot.send_message(user_id, f"❌ Maksimum hayvan sınırına ulaştın. (Mevcut civciv sayısı: {current_civciv_count})", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
          return
-    
+
     # Aynı renge sahip civciv var mı? (Kontrol: Zaten pazar menüsü sadece sahip olunmayan renkleri gösterir, bu ekstra güvenlik)
     if any(c['color'] == civciv_color for c in data[user_id_str]['civciv_list']):
         bot.send_message(user_id, f"❌ **{civciv_color}** renginde bir civcivin zaten var!", parse_mode='Markdown', reply_markup=generate_market_menu_buttons(user_id))
@@ -516,11 +518,11 @@ def handle_civciv_satin_alma(message):
     save_user_data(data)
     
     bot.send_message(user_id, 
-                     f"🎉 Tebrikler! **{civciv_color}** civcivini aldın! 🐣\n"
-                     f"💳 Altın Bakiyen: **{data[user_id_str]['altin']} 💰**\n"
-                     f"Hemen **'🐥 Civciv Besle'** menüsünden onu **10 yemle** besleyerek tavuk yap!", 
-                     parse_mode='Markdown', 
-                     reply_markup=generate_main_menu(user_id))
+                      f"🎉 Tebrikler! **{civciv_color}** civcivini aldın! 🐣\n"
+                      f"💳 Altın Bakiyen: **{data[user_id_str]['altin']} 💰**\n"
+                      f"Hemen **'🐥 Civciv Besle'** menüsünden onu **10 yemle** besleyerek tavuk yap!", 
+                      parse_mode='Markdown', 
+                      reply_markup=generate_main_menu(user_id))
 # --- Civciv Besle ve Tavuklaştırma ---
 
 @bot.message_handler(func=lambda message: message.text == "🐥 Civciv Besle")
@@ -570,17 +572,17 @@ def handle_feed_chicken_action(message):
             save_user_data(data)
             
             bot.send_message(user_id, 
-                             f"🐓 **TEBRİKLER!** **{civciv_color}** yeterli yemi aldı ve **TAVUK** oldu!\n"
-                             f"İlk yumurtasını **{EGG_INTERVAL_HOURS} saat** içinde bekleyebilirsiniz. Toplam tavuk sayısı: **{data[user_id_str]['tavuk_count']}**", 
-                             parse_mode='Markdown', 
-                             reply_markup=generate_main_menu(user_id))
+                              f"🐓 **TEBRİKLER!** **{civciv_color}** yeterli yemi aldı ve **TAVUK** oldu!\n"
+                              f"İlk yumurtasını **{EGG_INTERVAL_HOURS} saat** içinde bekleyebilirsiniz. Toplam tavuk sayısı: **{data[user_id_str]['tavuk_count']}**", 
+                              parse_mode='Markdown', 
+                              reply_markup=generate_main_menu(user_id))
         else:
             save_user_data(data)
             bot.send_message(user_id, 
-                             f"🌾 **{civciv_color}** beslendi. Tavuk olmasına **{YEM_FOR_TAVUK - found_civciv['yem']} yem** kaldı.\n"
-                             f"Kalan yeminiz: **{data[user_id_str]['yem']}**", 
-                             parse_mode='Markdown', 
-                             reply_markup=generate_feed_menu_buttons(user_id))
+                              f"🌾 **{civciv_color}** beslendi. Tavuk olmasına **{YEM_FOR_TAVUK - found_civciv['yem']} yem** kaldı.\n"
+                              f"Kalan yeminiz: **{data[user_id_str]['yem']}**", 
+                              parse_mode='Markdown', 
+                              reply_markup=generate_feed_menu_buttons(user_id))
     else:
         bot.send_message(user_id, "Hata: Beslenecek civciv bulunamadı.", reply_markup=generate_main_menu(user_id))
 
@@ -666,7 +668,7 @@ def handle_ranking(message):
         rank_message += f"\n...\nSizin Sıranız: **{user_rank}.** ({data[str(user_id)]['yumurta']} yumurta)"
         
     bot.send_message(user_id, rank_message, parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
-   
+    
 # --- Referans Sistemi ---
 
 @bot.message_handler(func=lambda message: message.text == "🔗 Referans Sistemi")
@@ -700,19 +702,19 @@ def handle_how_to_play_updated(message):
     referral_link = f"https://t.me/{BOT_USERNAME}?start={user_id}"
 
     bot.send_message(user_id, 
-                     "📖 **Oyun Kuralları ve Davet Sistemi**\n"
-                     "----------------------------------\n"
-                     "1. **Altın Kazan:** Kıldığın her vakit namazı için **+10 Altın 💰** kazanırsın.\n"
-                     f"2. **Civciv Al:** **{CIVCIV_COST_ALTIN} Altın** ile **'🛒 Civciv Pazarı'**ndan renkli civcivler alabilirsin.\n"
-                     f"3. **Yem Kazan:** Günlük görevleri tamamlayarak **+{YEM_PER_GOREV} Yem 🌾** kazanırsın.\n"
-                     f"4. **Hayvan Gelişimi:** Civcivlerini **{YEM_FOR_TAVUK} yemle** besleyerek **tavuğa** dönüştür.\n"
-                     f"5. **Yumurta Üretimi:** Tavuklar her **{EGG_INTERVAL_HOURS} saatte bir yumurta** üretir. Yumurtalar haftalık sıralamayı belirler!\n"
-                     f"6. **Referans Sistemi:** Sana özel link ile oyuna getirdiğin her bir arkadaşın için anında **+2 Yem 🌾** kazanırsın.\n"
-                     "\n"
-                     "👉 **Davet Linkin:**\n"
-                     f"`{referral_link}`",
-                     reply_markup=generate_main_menu(user_id),
-                     parse_mode='Markdown')
+                      "📖 **Oyun Kuralları ve Davet Sistemi**\n"
+                      "----------------------------------\n"
+                      "1. **Altın Kazan:** Kıldığın her vakit namazı için **+10 Altın 💰** kazanırsın.\n"
+                      f"2. **Civciv Al:** **{CIVCIV_COST_ALTIN} Altın** ile **'🛒 Civciv Pazarı'**ndan renkli civcivler alabilirsin.\n"
+                      f"3. **Yem Kazan:** Günlük görevleri tamamlayarak **+{YEM_PER_GOREV} Yem 🌾** kazanırsın.\n"
+                      f"4. **Hayvan Gelişimi:** Civcivlerini **{YEM_FOR_TAVUK} yemle** besleyerek **tavuğa** dönüştür.\n"
+                      f"5. **Yumurta Üretimi:** Tavuklar her **{EGG_INTERVAL_HOURS} saatte bir yumurta** üretir. Yumurtalar haftalık sıralamayı belirler!\n"
+                      f"6. **Referans Sistemi:** Sana özel link ile oyuna getirdiğin her bir arkadaşın için anında **+2 Yem 🌾** kazanırsın.\n"
+                      "\n"
+                      "👉 **Davet Linkin:**\n"
+                      f"`{referral_link}`",
+                      reply_markup=generate_main_menu(user_id),
+                      parse_mode='Markdown')
 # --- Arka Plan Thread İşlevleri ---
 
 def ensure_daily_reset():
@@ -808,9 +810,9 @@ def egg_production_and_notification():
                 try:
                     # Sayaç mesajını temizle (eğer varsa)
                     if user_id in counter_messages and 'message_id' in counter_messages[user_id]:
-                         bot.delete_message(user_id, counter_messages[user_id]['message_id'])
-                         del counter_messages[user_id]
-                         save_counter_state(counter_messages)
+                          bot.delete_message(user_id, counter_messages[user_id]['message_id'])
+                          del counter_messages[user_id]
+                          save_counter_state(counter_messages)
 
                     bot.send_message(user_id, f"🥚 **YUMURTA ZAMANI!** 🎉 Tavuklarınızdan **{yumurta_eklendi}** yeni yumurta aldınız. Toplam yumurta: **{user_data['yumurta']}**", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
                 except Exception as e:
@@ -914,16 +916,8 @@ if __name__ == '__main__':
         keep_alive()
         print("Web sunucusu aktif edildi.")
         bot.polling(non_stop=True, interval=0)
-        bot.infinity_polling()  
+        bot.infinity_polling() 
     except Exception as e:
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
 
         time.sleep(5)
-
-
-
-
-
-
-
-
