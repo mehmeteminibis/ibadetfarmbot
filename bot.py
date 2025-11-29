@@ -494,7 +494,7 @@ def handle_civciv_satin_alma(message):
     
     # Kontroller
     if data[user_id_str]['altin'] < CIVCIV_COST_ALTIN:
-        bot.send_message(user_id, f"❌ Yetersiz Altın! **{CIVCIV_COST_ALTIN - data[user_id_str]['altin']} Altın 💰** daha kazanmalısın.", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
+         bot.send_message(user_id, f"❌ Yetersiz Altın! **{CIVCIV_COST_ALTIN - data[user_id_str]['altin']} Altın 💰** daha kazanmalısın.", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
         return
     if current_civciv_count >= MAX_CIVCIV_OR_TAVUK:
          bot.send_message(user_id, f"❌ Maksimum hayvan sınırına ulaştın.", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
@@ -921,6 +921,7 @@ if __name__ == '__main__':
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
 
         time.sleep(5)
+
 
 
 
