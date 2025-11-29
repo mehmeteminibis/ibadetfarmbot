@@ -293,7 +293,7 @@ def handle_start(message):
                 print(f"DEBUG: ÖDÜL VERİLİYOR! Davet eden ({referer_id_str}) +{REF_YEM} Yem kazanıyor.")
                 
                 user_data[user_id_str]['referer'] = referer_id_str
-                user_data[user_id_str]['yem'] += REF_YEM
+                user_data[referer_id_str]['yem'] += REF_YEM
                 user_data[referer_id_str]['invites'] += 1
                 save_user_data(user_data)
                 
@@ -492,7 +492,7 @@ def handle_civciv_satin_alma(message):
     if data[user_id_str]['altin'] < CIVCIV_COST_ALTIN:
         bot.send_message(user_id, f"❌ Yetersiz Altın! **{CIVCIV_COST_ALTIN - data[user_id_str]['altin']} Altın 💰** daha kazanmalısın.", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
         return
-    if len(data[user_id_str]['civciv_list']) >= MAX_CIVCIV_OR_TAVUK:
+    if current_civciv_count >= MAX_CIVCIV_OR_TAVUK:
          bot.send_message(user_id, f"❌ Maksimum hayvan sınırına ulaştın.", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
          return
     
@@ -917,4 +917,5 @@ if __name__ == '__main__':
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
 
         time.sleep(5)
+
 
