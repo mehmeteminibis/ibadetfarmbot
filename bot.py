@@ -1,3 +1,5 @@
+from flask import Flask
+from threading import Thread # Botu arka planda çalıştırmak için
 import telebot
 from telebot import types
 import json
@@ -865,6 +867,22 @@ def save_counter_state_periodically():
             time.sleep(30)
 
 
+# Render'ı aktif tutmak için basit Flask sunucusu
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is alive" # Render'ın kontrol edeceği mesaj
+
+def run_keep_alive():
+    # Render'ın varsayılan portu 8080'dir
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run_keep_alive)
+    t.start()
+
+
 if __name__ == '__main__':
     
     global counter_messages
@@ -891,7 +909,14 @@ if __name__ == '__main__':
     
     # Botu sürekli dinlemeye al
     try:
+        if __name__ == '__main__':
+    keep_alive() # <<< Bunu ekleyin!
+    print("Web sunucusu aktif edildi.")
+
+    # Botunuzun asıl başlama komutu
+    bot.polling(non_stop=True, interval=0)
         bot.infinity_polling()  
     except Exception as e:
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
+
         time.sleep(5)
