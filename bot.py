@@ -907,16 +907,14 @@ if __name__ == '__main__':
     
     print("Arka plan thread'leri başlatıldı: (Günlük Sıfırlama, Haftalık Sıfırlama, Yumurta Üretimi, Namaz Hatırlatma)")
     
-    # Botu sürekli dinlemeye al
-    try:
-        if __name__ == '__main__':
-    keep_alive() # <<< Bunu ekleyin!
-    print("Web sunucusu aktif edildi.")
 
-    # Botunuzun asıl başlama komutu
-    bot.polling(non_stop=True, interval=0)
+    try:
+        keep_alive()
+        print("Web sunucusu aktif edildi.")
+        bot.polling(non_stop=True, interval=0)
         bot.infinity_polling()  
     except Exception as e:
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
 
         time.sleep(5)
+
