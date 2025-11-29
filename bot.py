@@ -485,6 +485,7 @@ def handle_civciv_satin_alma(message):
     user_id = message.from_user.id
     text = message.text
     data, user_id_str = get_user_data(user_id)
+    current_civciv_count = len([c for c in data[user_id_str]['civciv_list'] if c['status'] == 'civciv'])
     
     civciv_color = text.replace('💰 Satın Al: ', '')
     
@@ -917,5 +918,6 @@ if __name__ == '__main__':
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
 
         time.sleep(5)
+
 
 
