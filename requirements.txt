@@ -1,5 +1,5 @@
 # Telegram bot kütüphanesi
-pyTelegramBotAPI==4.11.1
+pyTelegramBotAPI==4.29.1
 
 # Flask web server için
 Flask==2.3.2
@@ -7,7 +7,7 @@ Flask==2.3.2
 # HTTP istekleri için
 requests==2.31.0
 
-# Ortam değişkenleri yönetimi (opsiyonel, eğer kullanıyorsan)
+# Ortam değişkenleri yönetimi (opsiyonel)
 python-dotenv==1.0.0
 
 
