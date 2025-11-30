@@ -29,6 +29,7 @@ NAMAZ_ALTIN_KAZANCI = 10
 CIVCIV_COST_ALTIN = 50
 REF_YEM_SAHIBI = 3           
 YEM_FOR_TAVUK = 10
+EGG_INTERVAL_HOURS = 4
 MAX_CIVCIV_OR_TAVUK = 8      
 EGG_SATIS_DEGERI = 0.10      
 MIN_EGG_SATIS = 10           
@@ -42,7 +43,6 @@ DAILY_TASKS = {
     'kaza_nafile': {'text': "1 Adet Kaza/Nafile Namazı Kıl", 'reward': 2}
 }
 PRAYER_NAMES_EN = ['sabah', 'ogle', 'ikindi', 'aksam', 'yatsi']
-
 # CIVCIV RENKLERİ
 CIVCIV_RENKLERI = [
     {'color': 'Sarı Civciv', 'emoji': '🐥'}, {'color': 'Kırmızı Civciv', 'emoji': '🍎'},
@@ -601,3 +601,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
         time.sleep(5)
+
