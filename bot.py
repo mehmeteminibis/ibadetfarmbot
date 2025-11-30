@@ -586,7 +586,6 @@ def handle_feed_chicken_action(message):
             bot.send_message(user_id, f"🌾 **{civciv_color}** beslendi. Tavuk olmasına **{YEM_FOR_TAVUK - found_civciv['yem']} yem** kaldı.\nKalan yeminiz: **{data[user_id_str]['yem']}**", parse_mode='Markdown', reply_markup=generate_feed_menu_buttons(user_id))
     else:
         bot.send_message(user_id, "Hata: Beslenecek civciv bulunamadı.", reply_markup=generate_main_menu())
-        ===========================================================
         # =================================================================
 # BÖLÜM 6/6: ARKA PLAN GÖREVLERİ VE BOT BAŞLATMA
 # =================================================================
@@ -654,3 +653,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
         time.sleep(5)
+
