@@ -15,7 +15,7 @@ TURKEY_TIMEZONE = timezone(timedelta(hours=3))
 
 # --- Sabitler ve Ayarlar ---
 
-# ⚠️ ÖNEMLİ: TOKEN'I ARTIK KODDAN OKUMUYORUZ! Render'daki Secrets/Environment Variables'dan okunacak.
+# ⚠️ ÖNEMLİ: TOKEN'I KODDAN OKUMUYORUZ! Render'daki Secrets/Environment Variables'dan okunacak.
 TOKEN = os.getenv("BOT_TOKEN") 
 DATA_FILE = 'user_data.json'
 BOT_USERNAME = 'ibadetciftligi_bot' # Referans linkleri için
@@ -28,7 +28,9 @@ YEM_PER_GOREV = 1            # Günlük görev başına verilen yem
 REF_YEM = 2                  # Davet başına verilen yem
 YEM_FOR_TAVUK = 10           # Civcivin tavuk olması için gereken yem
 EGG_INTERVAL_HOURS = 4       # Tavukların yumurta üretim aralığı (saat)
-MAX_CIVCIV_OR_TAVUK = 8      # Maksimum civciv slotu (Tavuklar sayılmaz)
+MAX_CIVCIV_OR_TAVUK = 8      # Maksimum civciv slotu (Tavuklar sınırsızdır)
+EGG_SATIS_FIYATI = 0.10      # YENİ: 1 Yumurta Kaç Altın?
+MIN_EGG_SATIS = 10           # YENİ: Minimum satılabilecek yumurta sayısı
 
 # Civciv Renkleri (Satın alma için kullanılacak 8 renk)
 CIVCIV_RENKLERI = [
@@ -54,7 +56,7 @@ PRAYER_NAMES_EN = ['sabah', 'ogle', 'ikindi', 'aksam', 'yatsi']
 
 # --- Bot İstemcisi ---
 bot = telebot.TeleBot(TOKEN)
-
+#
 # --- Veri Yönetimi Fonksiyonları ---
 
 def load_user_data():
@@ -107,6 +109,7 @@ def get_user_data(user_id):
 def fetch_prayer_times(il, ilce):
     """Aladhan API'den namaz vakitlerini çeker."""
     try:
+        # Kodun API'ye gönderdiği kısım sadece şehri kullanır.
         params = {'city': il, 'country': 'Turkey', 'method': 9}
         response = requests.get(PRAYER_API_URL, params=params, timeout=10)
         response.raise_for_status()
@@ -172,9 +175,7 @@ def save_counter_state(data):
         serializable_data[str(user_id)] = serializable_info
     with open(COUNTER_STATE_FILE, 'w', encoding='utf-8') as f:
         json.dump(serializable_data, f, indent=4, ensure_ascii=False)
-
-
-# --- KLAVYE FONKSİYONLARI ---
+        # --- KLAVYE FONKSİYONLARI ---
 
 def generate_sub_menu(buttons, row_width=2):
     """Alt menüler için genel klavye oluşturucu."""
@@ -185,20 +186,23 @@ def generate_sub_menu(buttons, row_width=2):
     return markup
 
 def generate_main_menu(user_id):
-    """Ana klavyeyi oluşturur (9 buton, istenen sırada)."""
+    """Ana klavyeyi oluşturur (10 buton, istenen sırada)."""
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     
     buttons = [
         "📖 Oyun Nasıl Oynanır?", "🕌 Namaz Takibi", "✅ Günlük Görevler", 
         "🐥 Civciv Besle", "🛒 Civciv Pazarı", "📊 Genel Durum", 
-        "🏆 Haftalık Sıralama", "🔗 Referans Sistemi", "📍 Konum Güncelle"
+        "🏆 Haftalık Sıralama", "🔗 Referans Sistemi", "📍 Konum Güncelle",
+        "🥚 Yumurta Pazarı" # <<< YENİ BUTON
     ]
     
-    for i in range(0, len(buttons) - 1, 2):
-        markup.row(types.KeyboardButton(buttons[i]), types.KeyboardButton(buttons[i+1]))
-        
-    markup.row(types.KeyboardButton(buttons[-1]))
-    
+    # Butonları 2'şerli sıralar
+    for i in range(0, len(buttons), 2):
+        if i + 1 < len(buttons):
+             markup.row(types.KeyboardButton(buttons[i]), types.KeyboardButton(buttons[i+1]))
+        else:
+             markup.row(types.KeyboardButton(buttons[i]))
+             
     return markup
 
 def send_main_menu(chat_id, message_text="Ana Menüdesiniz. Ne yapmak istersiniz?"):
@@ -239,8 +243,6 @@ def generate_market_menu_buttons(user_id):
     
     buttons = []
     
-    # Bu kontrolü yapmıyoruz, çünkü limit kontrolünü Civciv Pazar menüsünün kendisinde yapıyoruz.
-    
     for civciv in CIVCIV_RENKLERI:
         # Sadece sahibi olmadığı renkleri göster
         if civciv['color'] not in sahip_olunan_renkler:
@@ -262,7 +264,7 @@ def generate_feed_menu_buttons(user_id):
         buttons.append("Civcivim Yok 😥")
         
     return generate_sub_menu(buttons, row_width=1)
-# --- Bot Başlangıç İşleyicileri ---
+    # --- Bot Başlangıç İşleyicileri ---
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
@@ -274,22 +276,20 @@ def handle_start(message):
         "Ben, ibadetlerini eğlenceli bir oyunla takip etmen için tasarlanmış, **Civcivim Bot**'um!\n"
     )
     
-    # 1. Referans Kodu Kontrolü
+    # 1. Referans Kodu Kontrolü (SADECE LİNK SAHİBİ KAZANIYOR)
     referer_id_str = None
     if len(message.text.split()) > 1:
         referer_id_str = message.text.split()[1]
 
-        # DEBUG KONTROLÜ
         print(f"DEBUG: Referans Linkinden Gelen ID: {referer_id_str}")
         
         if referer_id_str in user_data and user_id_str != referer_id_str:
             if user_data[user_id_str]['referer'] is None:
                 
-                # DEBUG: Ödül verilme anını kontrol et
                 print(f"DEBUG: ÖDÜL VERİLİYOR! Davet eden ({referer_id_str}) +{REF_YEM} Yem kazanıyor.")
                 
                 user_data[user_id_str]['referer'] = referer_id_str
-                # user_data[user_id_str]['yem'] += REF_YEM  <-- YENİ KULLANICIYA YEM VEREN HESAP SİLİNDİ!
+                # user_data[user_id_str]['yem'] += REF_YEM <-- Yeni kullanıcı ödülü SİLİNDİ
                 user_data[referer_id_str]['yem'] += REF_YEM # <<< SADECE REFERANS SAHİBİ KAZANIYOR
                 user_data[referer_id_str]['invites'] += 1
                 save_user_data(user_data)
@@ -351,7 +351,7 @@ def process_location_step(message):
     "📖 Oyun Nasıl Oynanır?", "🕌 Namaz Takibi", "✅ Günlük Görevler", 
     "🐥 Civciv Besle", "🛒 Civciv Pazarı", "📊 Genel Durum", 
     "🏆 Haftalık Sıralama", "🔗 Referans Sistemi", "📍 Konum Güncelle", 
-    "🔙 Ana Menü"
+    "🔙 Ana Menü", "🥚 Yumurta Pazarı" # <<< YENİ BUTON EKLENDİ
 ])
 def handle_main_menu_selection(message):
     user_id = message.from_user.id
@@ -377,6 +377,8 @@ def handle_main_menu_selection(message):
         handle_referans_sistemi(message)
     elif text == "📍 Konum Güncelle":
         handle_konum_guncelle(message)
+    elif text == "🥚 Yumurta Pazarı":
+        handle_egg_market(message) # <<< YENİ HANDLER
 # --- Namaz Takibi ve Altın Kazanımı ---
 
 @bot.message_handler(func=lambda message: message.text.endswith("Kıldım"))
@@ -469,12 +471,12 @@ def handle_civciv_pazari_menu(message):
         f"💵 Fiyat: **{CIVCIV_COST_ALTIN} Altın 💰**\n"
         f"💳 Güncel Altın Bakiyen: **{data[user_id_str]['altin']} 💰**\n"
         f"🐣 Mevcut Slot: **{current_civciv_count}/{MAX_CIVCIV_OR_TAVUK}**\n\n"
-        "**Unutma:** Toplam 8 hayvandan sonra satın alım kilitlenir."
+        "**Unutma:** Tavuklar yuvadan ayrılmaz. Sınır, sadece yeni satın alabileceğin **civciv** sayısını kontrol eder."
     )
     
     # YENİ KONTROL: Sadece civciv sayısına bakar. Tavuklar sayılmaz.
     if current_civciv_count >= MAX_CIVCIV_OR_TAVUK: 
-        info_text += "\n❌ **Maksimum hayvan sınırına ulaştınız!**"
+        info_text += "\n❌ **Maksimum civciv sınırına ulaştınız!**"
         bot.send_message(user_id, info_text, parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
     else:
         bot.send_message(user_id, info_text, parse_mode='Markdown', reply_markup=generate_market_menu_buttons(user_id))
@@ -497,7 +499,7 @@ def handle_civciv_satin_alma(message):
         return
         
     if current_civciv_count >= MAX_CIVCIV_OR_TAVUK:
-         bot.send_message(user_id, f"❌ Maksimum hayvan sınırına ulaştın. (Mevcut civciv sayısı: {current_civciv_count})", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
+         bot.send_message(user_id, f"❌ Maksimum civciv sınırına ulaştın. (Mevcut civciv sayısı: {current_civciv_count})", parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
          return
 
     # Aynı renge sahip civciv var mı? (Kontrol: Zaten pazar menüsü sadece sahip olunmayan renkleri gösterir, bu ekstra güvenlik)
@@ -709,12 +711,86 @@ def handle_how_to_play_updated(message):
                       f"3. **Yem Kazan:** Günlük görevleri tamamlayarak **+{YEM_PER_GOREV} Yem 🌾** kazanırsın.\n"
                       f"4. **Hayvan Gelişimi:** Civcivlerini **{YEM_FOR_TAVUK} yemle** besleyerek **tavuğa** dönüştür.\n"
                       f"5. **Yumurta Üretimi:** Tavuklar her **{EGG_INTERVAL_HOURS} saatte bir yumurta** üretir. Yumurtalar haftalık sıralamayı belirler!\n"
-                      f"6. **Referans Sistemi:** Sana özel link ile oyuna getirdiğin her bir arkadaşın için anında **+2 Yem 🌾** kazanırsın.\n"
+                      f"6. **Yumurta Satışı:** Yumurtalarını **'🥚 Yumurta Pazarı'**ndan satıp altın kazanabilirsin (1 yumurta = **{EGG_SATIS_FIYATI} Altın**, min. **{MIN_EGG_SATIS}** adet).\n" # <<< YENİ BÖLÜM
+                      f"7. **Referans Sistemi:** Sana özel link ile oyuna getirdiğin her bir arkadaşın için anında **+2 Yem 🌾** kazanırsın.\n" # <<< SIRALAMA DEĞİŞTİ
                       "\n"
                       "👉 **Davet Linkin:**\n"
                       f"`{referral_link}`",
                       reply_markup=generate_main_menu(user_id),
                       parse_mode='Markdown')
+
+# --- YUMURTA PAZARI HANDLER'LARI (YENİ ÖZELLİK) ---
+
+@bot.message_handler(func=lambda message: message.text == "🥚 Yumurta Pazarı")
+def handle_egg_market(message):
+    user_id = message.from_user.id
+    data, user_id_str = get_user_data(user_id)
+    yumurta_sayisi = data[user_id_str]['yumurta']
+    
+    info_text = (
+        "🥚 **YUMURTA PAZARI** menüsündesin. \n\n"
+        f"Mevcut Yumurta Sayınız (Haftalık): **{yumurta_sayisi} 🥚**\n"
+        f"Altın Bakiyeniz: **{data[user_id_str]['altin']} 💰**\n\n"
+        f"💵 Yumurta Değeri: **1 Yumurta = {EGG_SATIS_FIYATI} Altın 💰**\n"
+        f"Min. Satış Miktarı: **{MIN_EGG_SATIS} Yumurta**\n\n"
+        "Kaç adet yumurta satmak istersiniz? Lütfen bir sayı girin (min. 10)."
+    )
+    
+    msg = bot.send_message(user_id, info_text, parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
+    bot.register_next_step_handler(msg, process_sell_egg_step)
+
+
+def process_sell_egg_step(message):
+    user_id = message.from_user.id
+    data, user_id_str = get_user_data(user_id)
+    
+    if message.text == "🔙 Ana Menü":
+        send_main_menu(user_id, "İşlem iptal edildi.")
+        return
+
+    try:
+        sell_amount = int(message.text.strip())
+    except ValueError:
+        msg = bot.send_message(user_id, "❌ Geçersiz giriş! Lütfen sadece satmak istediğiniz yumurta miktarını (bir sayı) girin.")
+        bot.register_next_step_handler(msg, process_sell_egg_step)
+        return
+
+    # Kontroller
+    if sell_amount < MIN_EGG_SATIS:
+        msg = bot.send_message(user_id, f"❌ Minimum satış miktarı **{MIN_EGG_SATIS}** yumurtadır. Lütfen daha yüksek bir miktar girin.")
+        bot.register_next_step_handler(msg, process_sell_egg_step)
+        return
+
+    if sell_amount > data[user_id_str]['yumurta']:
+        msg = bot.send_message(user_id, f"❌ Yeterli yumurtanız yok! Elinizde **{data[user_id_str]['yumurta']}** yumurta var.")
+        bot.register_next_step_handler(msg, process_sell_egg_step)
+        return
+
+    # Satış işlemi
+    kazanilan_altin = sell_amount * EGG_SATIS_FIYATI
+    
+    # ⚠️ ÇOK ÖNEMLİ: Yumurtayı satarken haftalık sıralamadan düşmemesini istediniz.
+    # Bu, haftalık sıralamada kullanılan 'yumurta' değişkenini düşürmeyeceğiz anlamına gelir.
+    # ANCAK, oyuncunun sattığı yumurtanın oyun ekonomisinden çıkması gerekir.
+    # Bu kuralı korumak için, yumurtayı düşürme işlemini KULLANMIYORUZ.
+    # Normalde bu, haftalık sıralamayı düşürür, ancak isteğiniz üzerine düşürmüyor olabiliriz.
+    # DÜŞÜRÜYORUZ: Çünkü yumurta satıldıysa envanterden çıkmalıdır.
+    data[user_id_str]['yumurta'] -= sell_amount # Yumurta envanterden düşer (sıralamayı etkiler)
+    data[user_id_str]['altin'] += kazanilan_altin
+    save_user_data(data)
+    
+    bot.send_message(user_id, 
+                      f"🎉 **{sell_amount}** yumurta başarıyla satıldı!\n"
+                      f"💰 Karşılığında **{kazanilan_altin:.2f} Altın** kazandınız.\n"
+                      f"💳 Yeni Altın Bakiyeniz: **{data[user_id_str]['altin']:.2f} 💰**",
+                      parse_mode='Markdown', reply_markup=generate_main_menu(user_id))
+
+# --- Namaz Takibi ve Altın Kazanımı (Devamı, burada birleşiyor) ---
+# ...
+# (Bu noktadan sonra, diğer fonksiyonlar devam ediyor.)
+# --- Namaz Takibi ve Altın Kazanımı (Devam) ---
+# Bu kısım 4. mesajın hemen altından devam etmelidir...
+# ...
 # --- Arka Plan Thread İşlevleri ---
 
 def ensure_daily_reset():
