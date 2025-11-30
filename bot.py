@@ -8,6 +8,38 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List
 from functools import wraps
 from flask import Flask, request, abort
+import telebot  # Telegram bot kütüphanesi
+
+# -----------------------------
+# Flask Web Server Başlangıç
+# -----------------------------
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot çalışıyor!"
+
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+# Flask'ı ayrı thread olarak başlat
+threading.Thread(target=run).start()
+# -----------------------------
+
+# -----------------------------
+# Telegram Bot Başlangıcı
+# -----------------------------
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+bot = telebot.TeleBot(BOT_TOKEN)
+
+# Örnek /start komutu
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, f"Selam {message.from_user.first_name}! Bot çalışıyor.")
+
+# Botu başlat
+bot.polling(none_stop=True)
+# -----------------------------
 
 import pytz
 import requests
@@ -672,3 +704,4 @@ if __name__ == "__main__":
     setup_webhook()
     # If running directly (dev), use Flask dev server
     app.run(host="0.0.0.0", port=PORT)
+
