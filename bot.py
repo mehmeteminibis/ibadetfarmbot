@@ -2,7 +2,7 @@
 # BÖLÜM 1/10: KÜTÜPHANELER, SABİTLER VE GLOBAL TANIMLAR
 # =================================================================
 from flask import Flask
-from threading import Thread
+import threading
 import telebot
 from telebot import types
 import json
@@ -797,3 +797,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
         time.sleep(5)
+
