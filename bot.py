@@ -292,6 +292,7 @@ def process_location_step(message):
 def handle_main_menu_selection(message):
     user_id = message.from_user.id
     text = message.text
+    try:
     
     if text == "🔙 Ana Menü":
         send_main_menu(user_id, "Ana Menüye dönüldü.")
@@ -315,6 +316,15 @@ def handle_main_menu_selection(message):
         handle_referans_sistemi(message)
     elif text == "📍 Konum Güncelle":
         handle_location_update(message)
+    except Exception as e:
+        # Hata mesajını Telegram'a gönder
+        bot.send_message(
+            user_id, 
+            f"❌ **KRİTİK HATA!** İşlem sırasında bir sorun oluştu.\nDetay: {type(e).__name__}: {str(e)}", 
+            parse_mode='Markdown'
+        )
+        # Hatanın Render loglarına da gitmesi için hatayı tekrar fırlat
+        raise e
 
 # --- NAMAZ TAKİBİ HANDLER'I ---
 
@@ -634,3 +644,4 @@ if __name__ == '__main__':
 
 # Eksik fonksiyon tanımı (request) için flask'tan request import edilmeli
 # NOTE: Bu kod, flask'ın Render'da otomatik olarak çalışması için en kararlı formdur.
+
