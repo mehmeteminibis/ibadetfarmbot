@@ -589,16 +589,48 @@ def keep_alive():
     t.daemon = True
     t.start()
     
-if __name__ == '__main__':
-    keep_alive()
+# --- YENİ WEBHOOK BAŞLATMA VE 7/24 BLOK ---
+
+# Gerekli import'lar (os, Flask, telebot) yukarıda tanımlı
+import logging
+logging.basicConfig(level=logging.INFO)
+
+# Telegram'dan gelen mesajları işlemek için bir URL yolu belirleyin
+WEBHOOK_PATH = "/{}".format(BOT_TOKEN)
+WEBHOOK_URL = "https://{}.onrender.com/{}".format(os.environ.get("RENDER_EXTERNAL_HOSTNAME"), BOT_TOKEN)
+
+# Flask sunucusunu artık ana uygulama olarak kullanıyoruz
+@app.route(WEBHOOK_PATH, methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return '', 200
+    return 'Content-Type Error', 403
+
+# Diğer tüm arka plan thread'leri buraya dahil edilmelidir
+def start_threads():
     threading.Thread(target=ensure_daily_reset_loop, daemon=True).start()
     threading.Thread(target=egg_production_and_notification, daemon=True).start()
     threading.Thread(target=save_counter_state_periodically, daemon=True).start()
-    print("--- Telegram İbadet Çiftliği Botu Başlatılıyor ---")
-    try:
-        print("Bot Polling başlıyor.")
-        bot.polling(non_stop=True, interval=0, timeout=40) 
-    except Exception as e:
-        print(f"Bot Çalışma Hatası: {e}. 5 saniye sonra yeniden deneniyor.")
-        time.sleep(5)
+    print("Arka plan thread'leri başlatıldı.")
 
+if __name__ == '__main__':
+    from flask import request # Request modülünü if __name__ == '__main__': içinde import ediyoruz.
+    
+    # Tüm eski bağlantıları sıfırla ve Webhook'u ayarla
+    bot.remove_webhook()
+    time.sleep(1) 
+    bot.set_webhook(url=WEBHOOK_URL)
+    
+    start_threads()
+    
+    print(f"--- Telegram İbadet Çiftliği Botu Başlatılıyor (WEBHOOK) ---")
+    print(f"Webhook URL'si ayarlandı: {WEBHOOK_URL}")
+
+    # Flask uygulamasını Render'ın gerektirdiği portta başlat
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', 8080))
+
+# Eksik fonksiyon tanımı (request) için flask'tan request import edilmeli
+# NOTE: Bu kod, flask'ın Render'da otomatik olarak çalışması için en kararlı formdur.
